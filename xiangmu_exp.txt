@@ -1,0 +1,197 @@
+项目 ： Clouder800-MIPS架构 GPS外设功能调试                  2016年3月 ～ 2016年4月
+项目简介: 
+ 1. 硬件外设模组是Ublox提供的G7020-KT型号, 阅读芯片Data Sheet熟悉工作原理和过程。
+ 2. 由芯片厂商提供源码，只有HAL层代码,移植u-blox hardware层代码进系统中，使其编译通过,在u-blox hardware层的配置文件中,配置其控制方式为uart,并指定操作接口为/dev/ttySAC2,波特率9600。
+ 3. 调试解决在HAL打开结点ttySAC2失败的情况，在init.rc中增加对ttySAC2设备文件节点的访问权限, chmod 0777 /dev/ttySAC2,chown system system /dev/ttySAC2 。
+ 4. 调试GPS外设模块，调试解决了GPS没有数据的情况. 原因是UART2的pinctrl没有设置, 配置好UART2的pinctrl可以看到有数据.
+ 5. 调试解决了GPS  hardware层解析数据乱码问题,示波器抓波形发现波特率不对,修改uart2使用的时钟输入源解决.
+ 6. 进行整机功耗测试时，发现飞行模式，功耗太大（50ma）。检查代码，发现是由于一开机就给GPS供电，造成GPS一直供电，引起功耗大的问题。查看u-blox指导文档，仔细查看u-blox hardware层代码，在其PowerOn函数中，添加写接口操作，来完成硬件上电，在PowerOff函数中，添加写接口操作，来完成硬件掉电。hardware层实现对GPS上下电控制 。
+并编写GPS kernel驱动，/sys/class/gps/pwrctl，通过节点控制GPS的power on和power off，创建设备节点给HAL层用来控制GPS的上电和下电功耗正常，并且GPS功能正常，能够搜索到GPS及GLONASS卫星，并能够正常定位。
+ 
+7. 调试解决安装APP，但是没有GPS数据上报，原因是使用了其他公司开发的系统，在打开APP的时候没有打开framework层控制开关。
+
+项目 ： Clouder800-MIPS架构 Vibrator外设功能调试                  2015年9月 ～ 2015年10月
+项目简介: 
+         1. 硬件外设模组是支持PWM的Motor, Motor只有电源和PWM两个引脚。
+ 2. 编写驱动程序提供配置PWM的接口和震动时间的接口。
+ 3. 调试Vibrator发现不震, 原因是配置PWM的寄存器Base地址错误.
+ 4. 调试Vibrator的功耗问题, 在震动时上电, 震动结束掉电。
+ 5. 把Vibrator移植得到U-boot中, 发现马达不震. 原因是马达没上电, U-boot里面没有对PMU进行初始化。
+ 6. 调试解决在U-boot中给马达上电(LDO9)失败的原因, I2C的write接口有问题导致上电失败。
+
+
+ 软件平台：Android 5.0+Kernel 3.16.0
+ 硬件环境：Clouder800智能手表
+
+
+软件平台：Android 5.0+Kernel 3.16.0
+ 硬件环境：Clouder800智能手表
+
+项目 ： Clouder800-MIPS架构 MailBox外设功能调试                  2015年8月 ～ 2015年9月
+项目简介: 
+         1. MailBox是由我们公司自己设计, 主要用来CPU和MCU通信。
+ 2. 编写驱动代码,提供读写数据寄存器的接口, 提供传送CMD的接口。
+ 3. 定义CMD的spec, 调试MailBox的驱动接口, .
+ 4. Power key和gesture在系统的休眠唤醒和初始化会用到此功能。
+
+
+
+ 软件平台：Android 5.0+Kernel 3.16.0
+ 硬件环境：Clouder800智能手表
+
+
+
+
+项目 ： Clouder800-MIPS架构 Sensor Hub外设功能调试                  2015年8月 ～ 2016年2月
+项目简介: 
+         1. 硬件外设模组是日本MCC提供的Frizz型号, Sensor Hub可以提供计步,手势,活动侦测,气压和光感等算数和功能, 阅读芯片Data Sheet熟悉工作原理和过程。
+ 2. 由芯片厂商提供源码，把代码集成到工程中，修改Makefile和Kconfig文件，配置I2C外设地址frizz的是0x1C。
+ 3. 调试frizz外设模块，调试解决了在kernel加载driver的时候读取sensor id没有成功的情况, 原因是SCL和SDA接反.
+ 
+ 4. 调试解决gesture唤醒整个系统的功能, 需要主cpu和mcu配合。
+ 5. 调试解决了sensor hub的休眠唤醒和低功耗的问题。
+
+
+项目 ： Clouder800-MIPS架构 心率(PPG)外设功能调试                  2015年7月 ～ 2015年8月
+项目简介: 
+         1. 硬件外设模组是PAH-8001，阅读芯片Data Sheet熟悉工作原理和过程。
+ 2. 由芯片厂商提供源码，把代码集成到工程中，修改Makefile和Kconfig文件，配置I2C外设地址PAH8001的是0x33。
+ 3. 调试PAH8001外设模块，自己编写测试程序检测心率。
+ 4. 调试PAH8001外设模块的功耗问题, 以及唤醒以后心率不能使用。
+ 5. 调试APH8001, 把模块集成到sensor hub中, 在HAL层封装成标准接口。
+
+项目 ： Clouder800-MIPS架构 Touch Panel外设功能调试                  2015年6月 ～ 2015年7月
+项目简介: 
+         1. 硬件外设模组有三款Touch Panel，两款款是敦泰(FocalTech)的ft-6236和ft-5187，一款是联阳（ITE）的ITE-7258，阅读芯片Data Sheet熟悉工作原理和过程。
+ 2. 由芯片厂商提供源码，把代码集成到工程中，修改Makefile和Kconfig文件，配置I2C外设地址ft-6236的是0x38，ITE-7258是0x46。
+ 3. 调试ft-6236外设模块，调试解决了在kernel加载driver的时候kernel panic的情况。调试解决了ft-5187在驱动加载完成没有触摸产生中断的情况,没有正确reset触摸IC.
+4.调试解决了没有触摸事件,却一直有数据上报的bug,原因是中断引脚没有上拉电阻,电平不稳定.
+5.调试解决了ft-5187触摸放置一会儿再去点触摸屏没有事件上报,原因原厂的firmware逻辑问题,没有触摸会自动进入休眠模式,而触摸无法唤醒
+,需要SOC主动reset触摸芯片,跟原厂沟通修改firmware. 
+ 6. 调试ITE-7258解决了添加code使Touch Panel可以做到自动升级，解决了在获取config数据和FW数据出错的情况。
+ 7. 添加代码调试解决了ITE-7258从只支持单点到支持两点的情况。
+ 8. 调试解决了low power（30uA）的问题，自己根据datasheet中IC的特性编写程序，主动使芯片进入suspend和resume。
+
+
+ 软件平台：Android 5.0+Kernel 3.16.0
+ 硬件环境：Clouder800智能手表
+
+项目 ： Clouder800-MIPS架构 MPU9250外设功能调试                  2015年5月 ～ 2015年6月
+项目简介: 
+1. 硬件外设模组是InvenSense MPU9250 9轴传感器（ Acceleration，Magnetic，Gyroscope）,阅读芯片Data Sheet熟悉工作原理和过程。
+ 2. 由芯片厂商提供源码，把代码集成到工程中，修改Makefile和Kconfig文件，配置I2C地址0x68。
+ 3. 调试MPU9250外设模块，调试解决了I2C总线SCL和SDA接反的情况。
+ 4. 调试解决了VDDIO电压不足时，MPU9250芯片内核没有运行的情况，因为当VDDIO的电压不足1.8V时，芯片在I2C通信的时候没有ACK。
+ 5. 调试解决了MPU9250内部FIFO溢出的情况，芯片内部有一个FIFO存放采集到的数据，当数据达到1/2的时候会把标志位置1导致CPU读取不到数据。
+ 6. 调试解决了low power的问题，自己根据外设的设备属性（device_attribute）编写程序，主动使芯片进入suspend和resume(50uA)。
+         7. MPU9250当检测到有数据的时候，会先把原始数据送到内部DMP进行处理，然后把处理过的数据放到内部FIFO，再向CPU发出中断请求，则此时CPU会来处理中断采集数据。
+
+
+项目 ： Clouder800-MIPS架构 PMU Charging外设功能调试                  2016年8月 ～ 2016年9月
+项目简介: 
+         1. 硬件外设模组是理光提供的RC5T619型号, 阅读芯片Data Sheet熟悉工作原理和过程。
+ 2. 由芯片厂商提供源码，把代码集成到Kernel工程中，修改Makefile和Kconfig文件。
+ 3. 调试解决电池曲线参数生成失败，原因是使用了380mA的小电池，电池两端的电压压降太小，在生成电池曲线参数时检测不到电池，把检流电阻扩大5倍即可。
+
+ 4.调试解决小电池充电曲线不准确的问题,充放电速度不合理,通过修改PMU charger的驱动程序算法逻辑,调整算法得到解决.
+ 5. 调试解决了把充电电流提供到200mA时，会出现充电电流不稳的情况，原因是电池的满冲电压是4.35V,而电池的限制电压设置是4.38。在充电的过程中有时会出现电压大于4.38V的情况，所以把电池的限制电压改成4.53V即可。
+ 6. 调试解决了当充电电流在减小到130mA时，会出现USB反复插拔的情况，原因是生成的电池曲线参数需要修改，但是原厂给出的修改方案有问题，应该是扩大5倍，但是原厂说的是缩小5倍。
+
+
+项目 ： Clouder800-MIPS架构 Wifi外设功能调试                  2016年6月 ～ 2016年7月
+项目简介: 
+         1. 硬件外设模组是乐鑫提供的ESP8089型号, 阅读芯片Data Sheet熟悉工作原理和过程。
+ 2. 由芯片厂商提供源码，把代码集成到Kernel工程中，修改Makefile和Kconfig文件，把上层控制驱动代码集成到HAL层。
+ 3. 调试解决产品板ESP8089 Bringup失败情况, 原因是没有使用reset引脚。开发板reset引脚defaut状态是低, 需要的电压是3.3V,但是我们芯片提供的IO电压是1.8V.
+ 4. 调试解决Wifi编译成模块连接不上AP的情况,原因是驱动调用sdio的接口函数有问题。
+ 5. 调试解决了Wifi与AP不能断开的情况, 原因是上层提供的接口没有对应。
+ 6. 调试解决了wifi上电失败导致Kernel Panic的情况.
+ 7. 调试解决了当加载SDIO的驱动时会出现失败的情况，发送出去的
+CMD没有响应。原因是因为Wifi芯片上电自复位失败，而SDIO在加载驱动时会probe挂载在下面的外设。所以在加载SDIO驱动时给Wifi上电，当驱动加载完成后再把Wifi下电。
+
+
+ 软件平台：Android 5.0+Kernel 3.16.0
+ 硬件环境：Clouder800智能手表
+
+项目 ： Clouder800-MIPS架构 Wifi外设功能调试                  2016年6月 ～ 2016年7月
+项目简介: 
+         1. 硬件外设模组乐鑫提供的ESP8089型号, 阅读芯片Data Sheet熟悉工作原理和过程。
+ 2. 由芯片厂商提供源码，把代码集成到Kernel工程中，修改Makefile和Kconfig文件，把上层控制驱动代码集成到HAL层。
+ 3. 调试解决产品板ESP8089 Bringup失败情况, 原因是没有使用reset引脚。开发板reset引脚defaut状态是低, 需要的电压是3.3V,但是我们芯片提供的IO电压是1.8V.
+ 4. 调试解决Wifi编译成模块连接不上AP的情况,原因是驱动调用sdio的接口函数有问题。
+ 5. 调试解决了Wifi与AP不能断开的情况, 原因是上层提供的接口没有对应。
+ 6. 调试解决了wifi上电失败导致Kernel Panic的情况.
+ 7. 调试解决了当加载SDIO的驱动时会出现失败的情况，发送出去的
+CMD没有响应。原因是因为Wifi芯片上电自复位失败，而SDIO在加载驱动时会probe挂载在下面的外设。所以在加载SDIO驱动时给Wifi上电，当驱动加载完成后再把Wifi下电。
+
+
+ 软件平台：Android 5.0+Kernel 3.16.0
+ 硬件环境：Clouder800智能手表
+项目 ： Clouder800-MIPS架构 SD卡调试                  2016年6月 ～ 2016年7月
+项目简介: 
+        1.调试解决 "card did not response the select voltage!”“init fail”,定位到代码处，ACMD41结束处发生错误，推测命令发送接受过程中出错，在mmc_send_cmd()中对一些返回值打应分析，因为CMD0不需等RESPONE所以无法确定有没有问题，CMD8发送需要等RESPONE，也会有问题，最终确定为命令发送出去而 接收RESPONSE TIMEOUT；命令发出后从INTSTS寄存器中读到的值RTO，大方向是HOST没能和SD卡通信成功，读取了一些寄存器值检查没发现问题,
+检查几处可能导致此类问题的软件配置有没有正确：1. SD的IOMUX是否设置好 2. 所使用的HOST 是否为MMC0，基地址是否正确3. 时钟有没有配置好。排查后都没问题,推测是硬件问题,拿示波器量卡座上面的CLK 和DAT引脚,没有信号,SD卡座小板硬件上去掉3.3v供电的上拉电阻，底板卡座端子飞5v供电线和GND线，问题解决
+        2.调试解决了发送CMD2后，程序没进行下去,原因是"程序太大,栈不够用",增大栈空间后解决.
+	3.调试解决了使用DMA读写SD卡出现问题,判断是DMA设置问题,分配的内存有问题，后使用DDR中的内存空间分配给DMA，由于使用DMA时直接访问DDR，Dcache中可能有数据未写入DDR，需要使用刷CACHE的函数，问题解决。
+ 软件平台：Android 5.0+Kernel 3.16.0
+ 硬件环境：Clouder800智能手表
+项目 ： Clouder800-MIPS架构 3G模块调试                  2016年6月 ～ 2016年7月
+项目简介: 
+       
+ 软件平台：Android 5.0+Kernel 3.16.0
+ 硬件环境：Clouder800智能手表
+  audio    camera ,3G模块,lcd
+2015~4   2017~3
+
+2012~9  2015~ 
+
+
+1.SN5104电容触摸芯片驱动
+1.选用矽恩微电子技术的电容触摸芯片,型号SN5104,阅读芯片datasheet熟悉工作原理和寄存器配置.
+2.编写基于I2C总线驱动架构的设备驱动代码,确认I2C设备地址,触摸事件基于中断引脚告知CPU去调用I2C接口读写相应事件寄存器.
+4.调试解决了松手 按下事件上报不准确的问题,开始只读了事件寄存器,仔细察看datasheet发现还有状态寄存器,两个寄存器同时处理才能判断真实按下松手事件,
+4.调试解决了事件上报几率性错漏的问题,通过使用示波器,中断信号作为单次触发,观察读写I2C数据信号,发现workqueue中的读I2C的时机比较慢,超过了SN5104默认的最大读取时间阈值,
+所以偶尔会错过准确的读写时机,再看代码发现一条printk打印语句比较耗时,去掉以后测试OK,还可以配置IC寄存器为直到读取后再清零,防止错漏按键事件. 
+
+rgbSN3236灯带驱动
+1.选用矽恩微电子技术的rgb芯片,型号为SN3236,阅读芯片datasheet熟悉工作原理和寄存器配置.
+2.编写基于I2C总线驱动架构的设备驱动代码,提供应用工程师系统读写接口可以配置任意一盏灯的亮度,确认I2C设备地址,全部36路灯分为rgb三组,通过I2C写PWM寄存器配置亮度和开关寄存器配置打开关闭,三种亮度的RGB组合在一起,可以实现丰富的色彩效果,.
+3.调试解决了RGB灯不亮的问题,在硬件工程师的配合下,发现RGB灯模组的供电输入端未连接2.2UF电容,改善硬件线路后RGB灯亮.
+4.调试解决了部分RGB灯不亮的问题,发现是驱动电流不足导致,最后硬件工程师改善电路,问题解决.
+
+gpiokey,编码开关的驱动调试
+1.配置内核,在device driver中配置gpio key和rotary key的配置选项,根据原理图获知GPIO号,在驱动代码中修改申请的gpio,转换成中断号,
+并注册为双沿触发的中断.
+2.调试解决了按键事件乱报务报的问题,由于soc GPIO设计的问题,配置成输入后电平问题,让硬件工程师外部加入上拉电阻,问题解决.
+
+uboot功能移植
+1.在uboot目录下面的driver的相应子目录增加驱动电容触摸芯片,RGB灯等的控制的裸机驱动代码.
+2.调试解决了uboot,kernel烧写后系统无法启动的问题,原因是编译生成的uboot变大,超过了配置文件预分配给uboot的分区大小,最后的数据段被kernel覆盖,
+导致uboot无法正常启动,加大配置文件中uboot的分区大小后解决.
+3G模块调试
+1.配置上内核网络驱动支持下面的ppp支持选项,设备驱动usb支持下面的GSM和CDMA modems,自行下载应用程序源码usb_modeswitch,libusb,ppp
+  交叉编译libusb:./configure --host=arm-linux --prefix=$PWD/tmp,make&& make install ,把头文件libusb.h和库复制进交叉工具链里的libc/usr/include和libc/armv4t/lib,
+把库文件复制到文件系统lib目录下面:
+交叉编译usb_modeswitch,修改Mikefile中CC=arm-linux-gcc,LIBS=-lusb-1.0, 编译安装make DESTDIR=$PWD/tmp && make DESTDIR=$PWD/tmp install 
+把生成的执行文件复制到目标文件系统,编译usb-modeswitch-data-20131113:make DESTDIR=$PWD/tmp install,复制到文件系统中,
+编译pppd:./configure --host=arm-linux --prefix=$PWD/tmp
+make CC=arm-linux-gcc
+make CC=arm-linux-gcc install,复制进目标文件系统,
+在device_reference.txt里选取一段存为eq10b.cfg
+使用usb_modeswitch切换工作模式:usb_modeswitch -c /etc/eq10b.cfg
+使用pppd拨号
+修改/etc/ppp/peers/evdo-dailer, 使用/dev/ttyUSB0
+pppd call evdo-dailer &
+cp /etc/ppp/resolv.conf /etc/resolv.conf
+ping  www.baidu.com网络通了.
+
+无线监控系统,USB WIFI,tmake DESTDIR=$PWD/tmp
+make DESTDIR=$PWD/tmp  install
+
+
+
+ audio,spi oled,lcd,ethernet,(智能家居zigbee)
+
+
+
+
